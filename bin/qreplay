@@ -1,0 +1,98 @@
+#!/usr/bin/env ruby
+
+require 'trollop'
+require 'pcap_tools'
+require 'cast'
+require 'pp'
+
+OPT = Trollop::options do
+  opt :capture_time, 'Capture time length in seconds', :default => 60.0
+  opt :capture_port, 'Capture traffic going to port', :default => 80
+  opt :output_file, 'Output file', :default => './qreplay.capture.tsv'
+  opt :tshark_binary, 'TShark binary file location', :default => 'tshark'
+  opt :dumpcap_binary, 'dumpcap binary file location', :default => 'dumpcap'
+  opt :pcap_file, 'Temporary intermediate pcap file path', :default => 'qreplay.pcap'
+end
+
+COMMANDS = ['capture', 'replay']
+
+def check_tshark(binary)
+  r = Cast::local("which #{binary}")
+  unless r == 0
+  	raise "Could not find tshark binary at path #{binary}"
+  end
+end
+
+def check_dumpcap(binary)
+  r = Cast::local("which #{binary}")
+  unless r == 0
+  	raise "Could not find dumpcap binary at path #{binary}"
+  end
+end
+
+class Printer
+  def initialize(output_file)
+    @counter = 0
+	@fhandle = File.open(output_file, 'w+')
+  end
+  
+  def process_stream stream
+    stream.each do |index, req, resp|
+	  body = req.body
+	  body = body.gsub(/\t/, '\u0009')
+	  body = body.gsub(/\n/, '\u000a')
+      @fhandle.puts "#{req.method}\t#{req.path}\t#{body}"
+      @counter += 1
+    end
+  end
+  
+  def finalize
+    puts "Number of HTTP Requests : #{@counter}"
+	@fhandle.close
+  end
+end
+
+def transform_pcap(tshark_binary, pcap_file, output_file)
+  puts "Writing HTTP requests with #{tshark_binary} from #{pcap_file} to #{output_file}"
+  check_tshark(tshark_binary)
+  
+  processor = PcapTools::TcpProcessor.new
+  processor.add_stream_processor(PcapTools::TcpStreamRebuilder.new)
+  processor.add_stream_processor(PcapTools::HttpExtractor.new)
+  processor.add_stream_processor(Printer.new(output_file))
+
+  begin
+    PcapTools::Loader::load_file(pcap_file, {}) do |index, packet|
+      begin
+        processor.inject index, packet
+      rescue Exception => e
+        puts "Skipping unparseable request:"
+        puts e.message
+      end
+    end
+  rescue Exception => e
+    puts "Exception while parsing tshark output, saving current requests and bailing out."
+	puts e.message
+	pp e.backtrace
+  end
+
+  processor.finalize
+end
+
+def capture_pcap(port, pcap_file, capture_time, dumpcap_binary)
+  check_dumpcap(dumpcap_binary)
+
+  puts "Capturing HTTP on port #{port} to file #{pcap_file} for #{capture_time} seconds"
+  cmd = "#{dumpcap_binary} -w #{pcap_file} -f 'tcp port #{port}' -a duration:#{capture_time.to_i}"
+  puts cmd
+  system(cmd)
+end
+
+command = ARGV[0]
+case command
+  when 'capture'
+    capture_pcap(OPT[:capture_port], OPT[:pcap_file], OPT[:capture_time], OPT[:dumpcap_binary])
+    transform_pcap(OPT[:tshark_binary], OPT[:pcap_file], OPT[:output_file])
+  else raise "Command must be #{COMMANDS.join('|')}"
+end
+
