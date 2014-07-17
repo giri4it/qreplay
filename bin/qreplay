@@ -7,41 +7,35 @@ require 'pp'
 
 OPT = Trollop::options do
   opt :capture_time, 'Capture time length in seconds', :default => 60.0
-  opt :capture_port, 'Capture traffic going to port', :default => 80
-  opt :output_file, 'Output file', :default => './qreplay.capture.tsv'
+  opt :port, 'Capture/replay traffic to port', :default => 80
+  opt :host, 'Replay host', :default => '0.0.0.0'
+  opt :req_sec, 'Requests per second for replays', :default => 20
+  opt :total_requests, 'Total replay requests to send', :default => 10000
+  opt :capture_file, 'Output file', :default => './qreplay.sesslog'
   opt :tshark_binary, 'TShark binary file location', :default => 'tshark'
   opt :dumpcap_binary, 'dumpcap binary file location', :default => 'dumpcap'
-  opt :pcap_file, 'Temporary intermediate pcap file path', :default => 'qreplay.pcap'
+  opt :pcap_file, 'Temporary intermediate pcap file path', :default => './qreplay.pcap'
+  opt :httperf_binary, 'httperf binary file location', :default => 'httperf'
 end
 
 COMMANDS = ['capture', 'replay']
 
-def check_tshark(binary)
-  r = Cast::local("which #{binary}")
-  unless r == 0
-  	raise "Could not find tshark binary at path #{binary}"
-  end
-end
-
-def check_dumpcap(binary)
-  r = Cast::local("which #{binary}")
-  unless r == 0
-  	raise "Could not find dumpcap binary at path #{binary}"
-  end
+def check_binary(name, binary)
+  r = Cast::local('which #{binary}')
+  raise "Could not find #{name} binary at path #{binary}" unless r == 0
 end
 
 class Printer
-  def initialize(output_file)
+  def initialize(capture_file)
     @counter = 0
-	@fhandle = File.open(output_file, 'w+')
+	@fhandle = File.open(capture_file, 'w+')
   end
   
   def process_stream stream
     stream.each do |index, req, resp|
 	  body = req.body
-	  body = body.gsub(/\t/, '\u0009')
-	  body = body.gsub(/\n/, '\u000a')
-      @fhandle.puts "#{req.method}\t#{req.path}\t#{body}"
+      @fhandle.puts "#{req.path} method=#{req.method} contents=#{body.inspect}"
+	  @fhandle.puts "\n"
       @counter += 1
     end
   end
@@ -52,14 +46,14 @@ class Printer
   end
 end
 
-def transform_pcap(tshark_binary, pcap_file, output_file)
-  puts "Writing HTTP requests with #{tshark_binary} from #{pcap_file} to #{output_file}"
-  check_tshark(tshark_binary)
+def transform_pcap(tshark_binary, pcap_file, capture_file)
+  puts "Writing HTTP requests with #{tshark_binary} from #{pcap_file} to #{capture_file}"
+  check_binary('tshark', tshark_binary)
   
   processor = PcapTools::TcpProcessor.new
   processor.add_stream_processor(PcapTools::TcpStreamRebuilder.new)
   processor.add_stream_processor(PcapTools::HttpExtractor.new)
-  processor.add_stream_processor(Printer.new(output_file))
+  processor.add_stream_processor(Printer.new(capture_file))
 
   begin
     PcapTools::Loader::load_file(pcap_file, {}) do |index, packet|
@@ -80,7 +74,7 @@ def transform_pcap(tshark_binary, pcap_file, output_file)
 end
 
 def capture_pcap(port, pcap_file, capture_time, dumpcap_binary)
-  check_dumpcap(dumpcap_binary)
+  check_binary('dumpcap', dumpcap_binary)
 
   puts "Capturing HTTP on port #{port} to file #{pcap_file} for #{capture_time} seconds"
   cmd = "#{dumpcap_binary} -w #{pcap_file} -f 'tcp port #{port}' -a duration:#{capture_time.to_i}"
@@ -88,11 +82,21 @@ def capture_pcap(port, pcap_file, capture_time, dumpcap_binary)
   system(cmd)
 end
 
+def replay_httperf(binary, req_sec, total_requests, capture_file, host, port)
+  check_binary('httperf', binary)
+  thinktime = 0.1
+  cmd = "#{binary} --server=#{host} --port=#{port} --rate=#{req_sec} --verbose --wsesslog=#{total_requests},#{thinktime},#{capture_file} --hog"
+  puts cmd
+  system(cmd)
+end
+
 command = ARGV[0]
 case command
   when 'capture'
-    capture_pcap(OPT[:capture_port], OPT[:pcap_file], OPT[:capture_time], OPT[:dumpcap_binary])
-    transform_pcap(OPT[:tshark_binary], OPT[:pcap_file], OPT[:output_file])
+    capture_pcap(OPT[:port], OPT[:pcap_file], OPT[:capture_time], OPT[:dumpcap_binary])
+    transform_pcap(OPT[:tshark_binary], OPT[:pcap_file], OPT[:capture_file])
+  when 'replay'
+    replay_httperf(OPT[:httperf_binary], OPT[:req_sec], OPT[:total_requests], OPT[:capture_file], OPT[:host], OPT[:port])
   else raise "Command must be #{COMMANDS.join('|')}"
 end
 
