@@ -14,13 +14,13 @@ OPT = Trollop::options do
   opt :req_sec, 'Requests per second for replays', :default => 20
   opt :total_requests, 'Total replay requests to send', :default => 10000
   opt :capture_file, 'Output file', :default => './qreplay.sesslog'
+  opt :pcap_file, 'Temporary intermediate pcap file path', :default => './qreplay.pcap'
   opt :tshark_binary, 'TShark binary file location', :default => 'tshark'
   opt :dumpcap_binary, 'dumpcap binary file location', :default => 'dumpcap'
-  opt :pcap_file, 'Temporary intermediate pcap file path', :default => './qreplay.pcap'
   opt :httperf_binary, 'httperf binary file location', :default => 'httperf'
 end
 
-COMMANDS = ['capture', 'replay']
+COMMANDS = ['capture', 'replay', 'transform', 'capture-only']
 
 def check_binary(name, binary)
   #r = Cast::local('which #{binary}')

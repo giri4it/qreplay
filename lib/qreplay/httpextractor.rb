@@ -62,7 +62,7 @@ module QReplay
       req['accept'] = nil
       add_headers req, headers
       if req['Content-Length']
-        if req.body.bytesize != req['Content-Length'].to_i && req['Expect'].strip != '100-continue'
+        if req.body.bytesize != req['Content-Length'].to_i && (req['Expect'].nil? || req['Expect'].strip != '100-continue')
           puts "Wrong content-length for http request, header say [#{req['Content-Length'].chomp}], found #{req.body.size}"
           return nil
         end
