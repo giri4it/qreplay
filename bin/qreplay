@@ -15,6 +15,7 @@ OPT = Trollop::options do
   opt :total_requests, 'Total replay requests to send', :default => 10000
   opt :capture_file, 'Output file', :default => './qreplay.sesslog'
   opt :pcap_file, 'Temporary intermediate pcap file path', :default => './qreplay.pcap'
+  opt :timeout, 'Timeout for replay requests', :default => 10
   opt :tshark_binary, 'TShark binary file location', :default => 'tshark'
   opt :dumpcap_binary, 'dumpcap binary file location', :default => 'dumpcap'
   opt :httperf_binary, 'httperf binary file location', :default => 'httperf'
@@ -85,10 +86,10 @@ def capture_pcap(port, pcap_file, capture_time, dumpcap_binary)
   system(cmd)
 end
 
-def replay_httperf(binary, req_sec, total_requests, capture_file, host, port)
+def replay_httperf(binary, req_sec, total_requests, capture_file, host, port, timeout)
   check_binary('httperf', binary)
   thinktime = 0.1
-  cmd = "#{binary} --server=#{host} --port=#{port} --rate=#{req_sec} --verbose --wsesslog=#{total_requests},#{thinktime},#{capture_file} --hog"
+  cmd = "#{binary} --server=#{host} --port=#{port} --rate=#{req_sec} --verbose --wsesslog=#{total_requests},#{thinktime},#{capture_file} --hog --timeout=#{timeout}"
   puts cmd
   system(cmd)
 end
@@ -103,7 +104,7 @@ case command
   when 'transform'
     transform_pcap(OPT[:tshark_binary], OPT[:pcap_file], OPT[:capture_file])
   when 'replay'
-    replay_httperf(OPT[:httperf_binary], OPT[:req_sec], OPT[:total_requests], OPT[:capture_file], OPT[:host], OPT[:port])
+    replay_httperf(OPT[:httperf_binary], OPT[:req_sec], OPT[:total_requests], OPT[:capture_file], OPT[:host], OPT[:port], OPT[:timeout])
   else raise "Command must be #{COMMANDS.join('|')}"
 end
 
