@@ -62,7 +62,7 @@ By default, httperf only handles HTTP bodies with 10,000 bytes or less, which is
 
 ## License
 
-The qreplay copyright is owned by Old School Industries LLC. We've licensed it under the MIT License, which can be found in `LICENCE.md`.
+The qreplay copyright is owned by Old School Industries LLC. We've licensed it under the MIT License, which can be found in `LICENSE.md`.
 
 ## Thanks
 
