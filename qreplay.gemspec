@@ -1,4 +1,6 @@
 # encoding: utf-8
+require File.expand_path("../lib/qreplay.rb", __FILE__)
+
 Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'pcap_tools'
   gem.add_runtime_dependency 'trollop'
@@ -9,7 +11,7 @@ Gem::Specification.new do |gem|
   gem.email = ['peter@quizlet.com']
   gem.executables = ['qreplay']
   gem.extra_rdoc_files = ['LICENSE.md', 'README.md']
-  gem.files = Dir['LICENSE.md', 'README.md', 'qreplay.gemspec', 'Gemfile', 'bin/*']
+  gem.files = Dir['LICENSE.md', 'README.md', 'qreplay.gemspec', 'Gemfile', 'bin/*', 'lib/**/*']
   gem.homepage = 'http://github.com/quizlet/qreplay'
   gem.name = 'qreplay'
   gem.rdoc_options = ["--charset=UTF-8"]
