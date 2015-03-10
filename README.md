@@ -11,17 +11,20 @@ qreplay [capture|replay|transform|capture_only] [options]
 
 Options:
 ```
-    --capture-time, -c <f>:   Capture time length in seconds (default: 60.0)
-            --port, -p <i>:   Capture/replay traffic to port (default: 80)
-            --host, -h <s>:   Replay host (default: 0.0.0.0)
-         --req-sec, -r <i>:   Requests per second for replays (default: 20)
-  --total-requests, -t <i>:   Total replay requests to send (default: 10000)
-    --capture-file, -a <s>:   Output file (default: ./qreplay.sesslog)
-   --tshark-binary, -s <s>:   TShark binary file location (default: tshark)
-  --dumpcap-binary, -d <s>:   dumpcap binary file location (default: dumpcap)
-       --pcap-file, -f <s>:   Temporary intermediate pcap file path (default: ./qreplay.pcap)
-  --httperf-binary, -e <s>:   httperf binary file location (default: httperf)
-                --help, -l:   Show this message
+-c, --capture-time=<f>         Capture time length in seconds (default: 60.0)                     
+-a, --capture-interface=<s>    Traffic capture interface (uses dumpcap default if not specified)  
+-p, --port=<i>                 Capture/replay traffic to port (default: 80)                       
+-h, --host=<s>                 Replay host (default: 0.0.0.0)                                     
+-r, --req-sec=<i>              Requests per second for replays (default: 20)                      
+-t, --total-requests=<i>       Total replay requests to send (default: 10000)                     
+-u, --capture-file=<s>         Output file (default: ./qreplay.sesslog)                           
+-f, --pcap-file=<s>            Temporary intermediate pcap file path (default: ./qreplay.pcap)    
+-i, --timeout=<i>              Timeout for replay requests (default: 10)                          
+-s, --tshark-binary=<s>        TShark binary file location (default: tshark)                      
+-d, --dumpcap-binary=<s>       dumpcap binary file location (default: dumpcap)                    
+-e, --httperf-binary=<s>       httperf binary file location (default: httperf)                    
+-v, --version                  Print version and exit                                             
+-l, --help                     Show this message                                                  
 ```
 
 ## Example
