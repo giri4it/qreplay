@@ -70,7 +70,7 @@ yum install wireshark httperf
 
 ## httperf
 
-By default, httperf only handles HTTP bodies with 10,000 bytes or less, which is easy to exceed if you're testing an application that POSTs significant amounts of data. We've increased a few of the arbitrary limitations in httperf in our fork, [here](https://github.com/quizlet/httperf), we recommend using it if you're hitting limits in the mainline httperf.
+By default, httperf only handles HTTP bodies with 10,000 bytes or less, which is easy to exceed if you're testing an application that POSTs significant amounts of data. We've increased a few of the arbitrary limitations in httperf in our fork [here](https://github.com/quizlet/httperf), and we recommend using it if you're hitting limits in the mainline httperf.
 
 ## License
 
