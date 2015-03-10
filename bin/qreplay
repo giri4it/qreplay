@@ -3,8 +3,7 @@
 require 'trollop'
 require 'pcap_tools'
 require 'pp'
-#require 'qreplay'
-require_relative '../lib/qreplay'
+require 'qreplay'
 
 p = Trollop::Parser.new do
   version "qreplay #{QReplay::VERSION} - (c) Old School Industries LLC"
