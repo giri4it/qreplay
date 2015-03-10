@@ -1,12 +1,12 @@
 # qreplay
 
-This is a simple tool to drive capturing, saving, and replaying HTTP requests. It depends on `tshark`, `dumpcap`, and `httperf`.
+This is a simple tool to drive capturing, saving, and replaying HTTP requests. It depends on `pcap_tools`, `tshark`, `dumpcap`, and `httperf`.
 
 ## Use
 
 ```shell
 gem install qreplay
-qreplay [capture|replay] [options]
+qreplay [capture|replay|transform|capture_only] [options]
 ```
 
 Options:
@@ -41,3 +41,26 @@ qreplay replay --host 127.0.0.1 --port 80 --req-sec 50
 ```
 
 To replay these requests to the local server at port 80 at a rate of 50 per second.
+
+## Installing
+
+Mac OS X (homebrew):
+```
+gem install qreplay
+brew install wireshark httperf
+```
+
+Yum package manager:
+```
+gem install qreplay
+yum install wireshark httperf
+```
+
+## License
+
+The qreplay copyright is owned by Old School Industries LLC. We've licensed it under the MIT License, which can be found in `LICENCE.md`.
+
+## Thanks
+
+Thanks to Bertrand Paquet for developing pcap tools and licensing it under the Apache 2 license. You can find more about pcap_tools [here](https://github.com/bpaquet/pcap_tools).
+

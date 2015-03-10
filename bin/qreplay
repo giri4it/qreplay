@@ -6,10 +6,8 @@ require 'pp'
 #require 'qreplay'
 require_relative '../lib/qreplay'
 
-VERSION = '0.1.0'
-
 p = Trollop::Parser.new do
-  version "qreplay #{VERSION}"
+  version "qreplay #{QReplay::VERSION} - (c) Old School Industries LLC"
   banner <<-EOS
   qreplay is a tool for capturing and replaying HTTP traffic.
 
@@ -89,7 +87,7 @@ def transform_pcap(tshark_binary, pcap_file, capture_file)
   check_binary('tshark', tshark_binary)
   
   processor = QReplay::TcpProcessor.new
-  processor.add_stream_processor(QReplay::TcpStreamRebuilder.new)
+  processor.add_stream_processor(PcapTools::TcpStreamRebuilder.new)
   processor.add_stream_processor(QReplay::HttpExtractor.new)
   processor.add_stream_processor(Printer.new(capture_file))
 

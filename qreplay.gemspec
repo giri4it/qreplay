@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ['lib']
   gem.required_rubygems_version = Gem::Requirement.new(">= 1.3.6")
   gem.summary = %q{Capture and replay HTTP traffic}
-  gem.version = '1.0.0'
+  gem.version = QReplay::VERSION
   gem.license = 'MIT'
 end
 
