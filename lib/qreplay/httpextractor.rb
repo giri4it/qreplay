@@ -1,3 +1,6 @@
+# This is a modified version of the code found in https://github.com/bpaquet/pcap_tools/blob/master/lib/pcap_tools/stream_processors/http.rb
+# Modified to handle more HTTP traffic cases.
+
 require 'pp'
 
 module QReplay

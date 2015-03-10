@@ -2,13 +2,41 @@
 
 require 'trollop'
 require 'pcap_tools'
-require 'cast'
 require 'pp'
 #require 'qreplay'
 require_relative '../lib/qreplay'
 
-OPT = Trollop::options do
+VERSION = '0.1.0'
+
+p = Trollop::Parser.new do
+  version "qreplay #{VERSION}"
+  banner <<-EOS
+  qreplay is a tool for capturing and replaying HTTP traffic.
+
+  qreplay [capture|replay|transform|capture-only] <args>
+
+  capture - Use tshark to capture http packets.
+  replay - Replay HTTP session file with requests to a host/port.
+  transform - Transform a dumpcap file to a sesslog file. This is executed automatically in capture mode.
+  capture-only - Perform a capture without a transform step.
+
+  Capturing TCP traffic requires root privileges on most systems.
+
+  Examples:
+
+  > sudo qreplay capture --capture-time 60 --port 80
+  > qreplay replay --host 127.0.0.1 --port 80 --req-sec 50
+
+  qreplay depends on tshark, dumpcap, and httperf, by default attempting to find them in the environment, with the option of passing the paths to them directly on the command line.
+
+  More info can be found at the gem website at github.com/quizlet/qreplay
+
+  Command Line Options:
+
+  EOS
+
   opt :capture_time, 'Capture time length in seconds', :default => 60.0
+  opt :capture_interface, 'Traffic capture interface (uses dumpcap default if not specified)', :type => :string
   opt :port, 'Capture/replay traffic to port', :default => 80
   opt :host, 'Replay host', :default => '0.0.0.0'
   opt :req_sec, 'Requests per second for replays', :default => 20
@@ -23,9 +51,16 @@ end
 
 COMMANDS = ['capture', 'replay', 'transform', 'capture-only']
 
+OPT = Trollop::with_standard_exception_handling p do
+  opt = p.parse ARGV
+  raise Trollop::HelpNeeded if ARGV.size < 1 || !COMMANDS.include?(ARGV[0])
+  opt
+end
+
+
 def check_binary(name, binary)
-  #r = Cast::local('which #{binary}')
-  #raise "Could not find #{name} binary at path #{binary}" unless r == 0
+  r = `which #{binary}`
+  raise "Could not find #{name} binary at path #{binary}" unless r and r.size > 0
 end
 
 class Printer
@@ -77,11 +112,12 @@ def transform_pcap(tshark_binary, pcap_file, capture_file)
   processor.finalize
 end
 
-def capture_pcap(port, pcap_file, capture_time, dumpcap_binary)
+def capture_pcap(port, pcap_file, capture_time, dumpcap_binary, capture_interface)
   check_binary('dumpcap', dumpcap_binary)
 
   puts "Capturing HTTP on port #{port} to file #{pcap_file} for #{capture_time} seconds"
   cmd = "#{dumpcap_binary} -w #{pcap_file} -f 'tcp port #{port}' -a duration:#{capture_time.to_i}"
+  cmd += " -i #{capture_interface}" if capture_interface
   puts cmd
   system(cmd)
 end
@@ -96,15 +132,14 @@ end
 
 command = ARGV[0]
 case command
-  when 'capture'
-    capture_pcap(OPT[:port], OPT[:pcap_file], OPT[:capture_time], OPT[:dumpcap_binary])
-    transform_pcap(OPT[:tshark_binary], OPT[:pcap_file], OPT[:capture_file])
-  when 'capture-only'
-    capture_pcap(OPT[:port], OPT[:pcap_file], OPT[:capture_time], OPT[:dumpcap_binary])
-  when 'transform'
-    transform_pcap(OPT[:tshark_binary], OPT[:pcap_file], OPT[:capture_file])
-  when 'replay'
-    replay_httperf(OPT[:httperf_binary], OPT[:req_sec], OPT[:total_requests], OPT[:capture_file], OPT[:host], OPT[:port], OPT[:timeout])
-  else raise "Command must be #{COMMANDS.join('|')}"
+when 'capture'
+  capture_pcap(OPT[:port], OPT[:pcap_file], OPT[:capture_time], OPT[:dumpcap_binary], OPT[:capture_interface])
+  transform_pcap(OPT[:tshark_binary], OPT[:pcap_file], OPT[:capture_file])
+when 'capture-only'
+  capture_pcap(OPT[:port], OPT[:pcap_file], OPT[:capture_time], OPT[:dumpcap_binary], OPT[:capture_interface])
+when 'transform'
+  transform_pcap(OPT[:tshark_binary], OPT[:pcap_file], OPT[:capture_file])
+when 'replay'
+  replay_httperf(OPT[:httperf_binary], OPT[:req_sec], OPT[:total_requests], OPT[:capture_file], OPT[:host], OPT[:port], OPT[:timeout])
 end
 

@@ -1,3 +1,5 @@
+# This is a modified version of the code found in https://github.com/bpaquet/pcap_tools/blob/master/lib/pcap_tools/packet_processors/tcp.rb.
+
 require 'time'
 
 module QReplay

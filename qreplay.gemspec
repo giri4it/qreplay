@@ -1,6 +1,5 @@
 # encoding: utf-8
 Gem::Specification.new do |gem|
-  gem.add_runtime_dependency 'cast-ssh'
   gem.add_runtime_dependency 'pcap_tools'
   gem.add_runtime_dependency 'trollop'
 
