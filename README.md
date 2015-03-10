@@ -11,31 +11,40 @@ qreplay [capture|replay|transform|capture_only] [options]
 
 Options:
 ```
--c, --capture-time=<f>         Capture time length in seconds (default: 60.0)                     
--a, --capture-interface=<s>    Traffic capture interface (uses dumpcap default if not specified)  
--p, --port=<i>                 Capture/replay traffic to port (default: 80)                       
--h, --host=<s>                 Replay host (default: 0.0.0.0)                                     
--r, --req-sec=<i>              Requests per second for replays (default: 20)                      
--t, --total-requests=<i>       Total replay requests to send (default: 10000)                     
--u, --capture-file=<s>         Output file (default: ./qreplay.sesslog)                           
--f, --pcap-file=<s>            Temporary intermediate pcap file path (default: ./qreplay.pcap)    
--i, --timeout=<i>              Timeout for replay requests (default: 10)                          
--s, --tshark-binary=<s>        TShark binary file location (default: tshark)                      
--d, --dumpcap-binary=<s>       dumpcap binary file location (default: dumpcap)                    
--e, --httperf-binary=<s>       httperf binary file location (default: httperf)                    
--v, --version                  Print version and exit                                             
--l, --help                     Show this message                                                  
+-c, --capture-time=<f>         Capture time length in seconds (default: 60.0)
+-a, --capture-interface=<s>    Traffic capture interface (uses dumpcap default if not specified)
+-p, --port=<i>                 Capture/replay traffic to port (default: 80)
+-h, --host=<s>                 Replay host (default: 0.0.0.0)
+-r, --req-sec=<i>              Requests per second for replays (default: 20)
+-t, --total-requests=<i>       Total replay requests to send (default: 10000)
+-u, --capture-file=<s>         Output file (default: ./qreplay.sesslog)
+-f, --pcap-file=<s>            Temporary intermediate pcap file path (default: ./qreplay.pcap)
+-i, --timeout=<i>              Timeout for replay requests (default: 10)
+-s, --tshark-binary=<s>        TShark binary file location (default: tshark)
+-d, --dumpcap-binary=<s>       dumpcap binary file location (default: dumpcap)
+-e, --httperf-binary=<s>       httperf binary file location (default: httperf)
+-v, --version                  Print version and exit
+-l, --help                     Show this message
 ```
+
+capture - Use tshark to capture http packets.
+replay - Replay HTTP session file with requests to a host/port.
+transform - Transform a dumpcap file to a sesslog file. This is executed automatically in capture mode.
+capture-only - Perform a capture without a transform step.
+
+Capturing TCP traffic requires root privileges on most systems.
 
 ## Example
 
 You want to capture traffic on a live web server. On the remote machine run:
 
 ```
-qreplay capture --capture-time 60 --port 80
+sudo qreplay capture --capture-time 60 --port 80
 ```
 
 This will use `tshark` to capture TCP traffic to/from port 80 for 60 seconds, stitch together HTTP requests from the TCP traffic, and save requests to `./qreplay.sesslog`. If you observe this file you will notice that each request line contains an HTTP method, path, and body in a format acceptable to `httperf`.
+
+This example is invoking `sudo` so that it has access to the capture device.
 
 You can then replay with:
 
