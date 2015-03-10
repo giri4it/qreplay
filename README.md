@@ -9,7 +9,7 @@ gem install qreplay
 qreplay [capture|replay|transform|capture_only] [options]
 ```
 
-- __capture__ - Use tshark to capture http packets.
+- __capture__ - Use `tshark` to capture http packets.
 - __replay__ - Replay HTTP session file with requests to a host/port.
 - __transform__ - Transform a dumpcap file to a sesslog file. This is executed automatically in capture mode.
 - __capture-only__ - Perform a capture without a transform step.
